@@ -338,7 +338,7 @@ class KalturaHelpers {
 		if ($COURSE->id) {
 			$kalturaCourseTags = $COURSE->shortname;
 			$kalturaCourseTags .= ",";
-			$kalturaCourseTags .= $COURSE->longname;
+			$kalturaCourseTags .= $COURSE->fullname;
 		}
 		return $kalturaCourseTags;
 	}

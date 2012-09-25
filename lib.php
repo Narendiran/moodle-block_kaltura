@@ -20,7 +20,7 @@ define('KALTURA_LEGACY_PLAYER_PLAYERVIDEOPRESENTATION', 1003069);
 
 // New Player IDs
 define('KALTURA_PLAYER_PLAYEREDITOR',                   4395711);
-define('KALTURA_PLAYER_UPLOADERREGULAR',                4395691);
+define('KALTURA_PLAYER_UPLOADERREGULAR',                7632751);
 define('KALTURA_PLAYER_UPLOADERMIX',                    4395701);
 define('KALTURA_PLAYER_PLAYERREGULARDARK',              4674741);
 define('KALTURA_PLAYER_PLAYERREGULARLIGHT',             4674731);
@@ -30,14 +30,15 @@ define('KALTURA_PLAYER_PLAYERVIDEOPRESENTATION',        4860481);
 
 define('KALTURA_CACHE_REFRESH', 12); // Minutes before the Kaltura cache refreshes
 
-// MMU addition 2012-09-21
-define('MMU_DEFAULT_CATEGORY','mmutube');
+// MMU addition 2012-09-25
+define('MMU_DEFAULT_CATEGORY','MediaSpace>Private');
 
 require_once('client/kaltura_settings.php');
 require_once('client/KalturaClientBase.php');
 require_once('client/KalturaClient.php');
 require_once('client/kaltura_logger.php');
 require_once('client/kaltura_helpers.php');
+require_once('locallib.php');
 require_once('jsportal.php');
 
 class KalturaPlayerSize {
@@ -87,10 +88,10 @@ function get_cw_wizard($div, $width, $height, $type) {
       }
 
       var iframediv = iframedoc.getElementById("page");
-      iframediv.id = "iframe-page";
+      iframediv.id = "kaltura-iframe-page";
 
       var iframediv = iframedoc.getElementById("content");
-      iframediv.id = "iframe-content";
+      iframediv.id = "kaltura-iframe-content";
 
       // Setup SWFObject and write it to the div element
       var kso = new SWFObject("'. $swfUrl .'", "KalturaCW", "'. $width .'", "'. $height .'", "9", "#ffffff");
@@ -118,12 +119,13 @@ function get_se_wizard($div, $width, $height,$entryId) {
 
     if ($kalturaSecret != null && strlen($kalturaSecret) > 0) {
         try {
-            $kClient = new KalturaClient(KalturaHelpers::getServiceConfiguration());
-            $kalturaUser = KalturaHelpers::getPlatformKey('user', '');
-            $ksId = $kClient -> session -> start($kalturaSecret, $kalturaUser, KalturaSessionType::USER, null, 86400, '*');
-            $kClient -> setKs($ksId );
-            $url = KalturaHelpers::getSimpleEditorUrl(KalturaHelpers::getPlatformKey('kaltura_player_editor', null));
-            $params =  KalturaHelpers::flashVarsToString(KalturaHelpers::getSimpleEditorFlashVars($ksId,$entryId, 'entry', ''));
+            $kClient        = new KalturaClient(KalturaHelpers::getServiceConfiguration());
+            $kalturaUser    = KalturaHelpers::getPlatformKey('user', '');
+            $ksId           = $kClient->session->start($kalturaSecret, $kalturaUser, KalturaSessionType::USER, null, 86400, '*');
+            $kClient->setKs($ksId );
+            $player         = get_player_uiconf('player_editor');
+            $url            = KalturaHelpers::getSimpleEditorUrl($player);
+            $params         = KalturaHelpers::flashVarsToString(KalturaHelpers::getSimpleEditorFlashVars($ksId,$entryId, 'entry', ''));
         } catch(Exception $exp) {
           $flash_embed = $exp->getMessage();
         }
@@ -144,10 +146,10 @@ function get_se_wizard($div, $width, $height,$entryId) {
             }
 
             var iframediv = iframedoc.getElementById("page");
-            iframediv.id = "iframe-page";
+            iframediv.id = "kaltura-iframe-page";
 
             var iframediv = iframedoc.getElementById("content");
-            iframediv.id = "iframe-content";
+            iframediv.id = "kaltura-iframe-content";
 
             var kso = new SWFObject("'. $url .'", "KalturaSW", "'. $width .'", "'. $height .'", "9", "#ffffff");
             kso.addParam("flashVars", "'. $params .'");
@@ -212,30 +214,53 @@ function get_cw_js_functions($type, $props = array() /*$divCW, $updateField, $di
     return $javascript;
 }
 
-function get_cw_props_player($div, $width, $height) {
+function get_cw_props_player($div, $type, $width, $height) {
 
-//  $client = KalturaHelpers::getKalturaClient();
-    $players    = KalturaHelpers::getPlayers(KalturaEntryType::MEDIA_CLIP);
+    $players    = array();
+    $player = new stdClass();
+
+    if (KalturaEntryType::MEDIA_CLIP == $type) {
+
+        $players[0] = new stdClass();
+        $players[0]->index = 'dark';
+        $players[0]->uiconf = get_player_uiconf('player_dark');
+
+        $players[1] = new stdClass();
+        $players[1]->index = 'light';
+        $players[1]->uiconf = get_player_uiconf('player_light');
+
+    } else {
+
+        $players[0] = new stdClass();
+        $players[0]->index = 'dark';
+        $players[0]->uiconf = get_player_uiconf('player_mix_dark');
+
+        $players[1] = new stdClass();
+        $players[1]->index = 'light';
+        $players[1]->uiconf = get_player_uiconf('player_mix_light');
+
+    }
+
     $partnerId  = KalturaHelpers::getPlatformKey('kaltura_partner_id', '0');
     $swfUrl     = KalturaHelpers::getSwfUrlForWidget($partnerId);
     $swfUrl     .=  '/uiconf_id/';
-//  $flashVarsStr = KalturaHelpers::flashVarsToString(KalturaHelpers::getKalturaPlayerFlashVars($client->getKS(), -1, "#ReplaceME#"));
 
     $flash_embed = '
         <script type="text/javascript">
         function show_entry_player(entryId, design) {
 
-            var playreId = '.KALTURA_PLAYER_PLAYERREGULARLIGHT.';
+            var playerId = 0;';
 
+    $flash_embed .= '
             switch (design) {';
 
-                foreach($players as $option_player_name => $option_player_id) {
-                    $flash_embed .= '      case "' . $option_player_name . '": playreId=' . $option_player_id . ';break;';
+                foreach($players as $data) {
+                    $flash_embed .= '      case "' . $data->index . '": playerId=' . $data->uiconf . ';break;';
                 }
 
       $flash_embed .= '      }
 
-            var kso = new SWFObject("'. $swfUrl .'" + playreId + "/entry_id/" + entryId, "' . $div. '", "'. $width .'", "'. $height .'", "9", "#ffffff");
+            var kso = new SWFObject("'. $swfUrl .'" + playerId + "/entry_id/" + entryId, "' . $div. '", "'. $width .'", "'. $height .'", "9", "#ffffff");
             kso.addParam("allowScriptAccess", "always");
             kso.addParam("allowFullScreen", "TRUE");
             kso.addParam("allowNetworking", "all");
@@ -270,8 +295,8 @@ function get_cw_properties_pane($entry, $type) {
 
     </style>
 
-    <!-- <div id="divClipProps" style="display:none;margin-top:-20px"> -->
-    <div id="divClipProps" style="display:none;">
+    <!-- <div id="kaltura-divClipProps" style="display:none;margin-top:-20px"> -->
+    <div id="kaltura-divClipProps" style="display:none;">
         <div id="divClip">
         </div>
         <div id="divUserSlected">
@@ -373,7 +398,14 @@ function embed_kaltura($entryId, $width, $height, $type, $design, $show_links = 
 
     global $CFG;
 
-    $playerId           = KalturaHelpers::getPlayer($type, $design);
+    if (KalturaEntryType::MEDIA_CLIP == $type) {
+
+        $playerId = get_player_uiconf('player_' . $design);
+    } else {
+
+        $playerId = get_player_uiconf('player_mix_' . $design);
+    }
+
     $partnerId          = KalturaHelpers::getPlatformKey('kaltura_partner_id', '0');
     $swfUrl             = KalturaHelpers::getSwfUrlForWidget($partnerId);
     $swfUrl             .=  "/uiconf_id/$playerId/entry_id/" . $entryId;
@@ -419,10 +451,10 @@ function embed_kaltura($entryId, $width, $height, $type, $design, $show_links = 
                       }
 
                       var iframediv = iframedoc.getElementById("page");
-                      iframediv.id = "iframe-page";
+                      iframediv.id = "kaltura-iframe-page";
 
                       var iframediv = iframedoc.getElementById("content");
-                      iframediv.id = "iframe-content";
+                      iframediv.id = "kaltura-iframe-content";
 
                   }
 
@@ -446,7 +478,7 @@ function embed_kswfdoc($entryId, $width, $height, $context_id) {
     global $CFG, $USER;
 
     $client               = KalturaHelpers::getKalturaClient();
-    $kswf_player          = KalturaHelpers::getPlatformKey('kaltura_player_video_presentation', KALTURA_PLAYER_PLAYERVIDEOPRESENTATION);
+    $kswf_player          = get_player_uiconf('player_presentation');
     $partnerId            = KalturaHelpers::getPlatformKey('kaltura_partner_id','0');
     $swfUrl               = KalturaHelpers::getSwfUrlForWidget($partnerId);
     $div_id               = 'kaltura_wrapper_' . $entryId;
@@ -509,10 +541,10 @@ function embed_kswfdoc($entryId, $width, $height, $context_id) {
                       }
 
                       var iframediv = iframedoc.getElementById("page");
-                      iframediv.id = "iframe-page";
+                      iframediv.id = "kaltura-iframe-page";
 
                       var iframediv = iframedoc.getElementById("content");
-                      iframediv.id = "iframe-content";
+                      iframediv.id = "kaltura-iframe-content";
 
                   }
 
@@ -621,9 +653,9 @@ function kaltura_format_url($url, $includeprotocol = true, $remveslash = true) {
  * before the kaltura cache refreshes
  *
  * @param int timestamp - The time the video was modified
- * @param array - the first element is a boolean - true for success.
- * The secton element is an int that represents how many minutes until
- * the Kaltura server cache is refreshed
+ * @return array - the first element is a boolean - true for success. The secton
+ * element is an int that represents how many minutes until the Kaltura server
+ * cache is refreshed
  */
 function is_video_cached($video_modified = 0) {
 

@@ -197,7 +197,6 @@ function change_entry_player() {
     var design = document.getElementById("slctDesign");
 
     show_entry_player(local_entry_id, design.options[design.selectedIndex].value);
-
 }
 
 function get_video_resource_name() {
@@ -322,6 +321,7 @@ function onContributionWizardAfterAddEntry(param) {
             update_field(updatefield, entryId, false, 'show_wait');
         }
     }
+    
 }
 
 

@@ -1,14 +1,17 @@
 <?php
 defined('MOODLE_INTERNAL') || die();
 
-require_once('lib.php');
-
 /**
  * Obtain and initialize the secret, adminsecret and partner_id from the server
+ *
+ * @param string - email address of account
+ * @param string - password
+ * @param int - partner_id (optional)
+ * @param string - secret (required if partner_id is passed)
  */
-function kaltura_init_hosted_account($email, $password) {
+function kaltura_init_hosted_account($email, $password, $partner_id = 0, $secret = '') {
     try {
-
+        $ksId = '';
 
         $config_obj = new KalturaConfiguration(0);
         $config_obj->serviceUrl = KalturaHelpers::getKalturaServerUrl();
@@ -16,7 +19,13 @@ function kaltura_init_hosted_account($email, $password) {
 
         $kClient = new KalturaClient($config_obj);
 
-        $ksId = $kClient->adminUser->login($email, $password);
+        if (!empty($email) && !empty($password)) {
+            $ksId = $kClient->adminUser->login($email, $password);
+        } elseif (!empty($partner_id) && !empty($secret)) {
+            $ksId = $kClient->session->start($secret, '',  KalturaSessionType::ADMIN, $partner_id);
+        } else {
+            return false;
+        }
 
         $kClient->setKs($ksId);
 
@@ -52,35 +61,56 @@ function kaltura_init_hosted_account($email, $password) {
 }
 
 /**
- * Get the username and password used for the connection type
+ * Get the username, password, partner id and secret
+ * used for the connection type
+ *
+ * @param bool - true to return the admin secret otherwise false
+ * @return array - login, password, partner id and secret
  */
-function kaltura_get_credentials() {
+function kaltura_get_credentials($admin = false) {
 
     $uri = get_config(KALTURA_PLUGIN_NAME, 'kaltura_uri');
 
     $login = false;
     $password = false;
 
-    $login = get_config(KALTURA_PLUGIN_NAME, 'kaltura_login');
-    $password = get_config(KALTURA_PLUGIN_NAME, 'kaltura_password');
+    $login      = get_config(KALTURA_PLUGIN_NAME, 'kaltura_login');
+    $password   = get_config(KALTURA_PLUGIN_NAME, 'kaltura_password');
+    $partner_id = get_config(KALTURA_PLUGIN_NAME, 'kaltura_partner_id');
 
-    return array($login, $password);
+    if ($admin) {
+        $secret = get_config(KALTURA_PLUGIN_NAME, 'kaltura_adminsecret');
+    } else {
+        $secret = get_config(KALTURA_PLUGIN_NAME, 'kaltura_secret');
+    }
+
+    return array($login, $password, $partner_id, $secret);
 }
 
 /**
  * Login to admin account
+ *
+ * @param bool - true to use admin session type, otherwise false
  */
-function kaltura_login() {
+function kaltura_login($admin = false) {
 
-    list($username, $password) = kaltura_get_credentials();
+    list($username, $password, $partner_id, $secret) = kaltura_get_credentials($admin);
 
-    if (empty($username) or empty($password)) {
+    if (empty($partner_id) && (empty($username) || empty($password))) {
         return false;
     }
 
+    $ksId    = '';
     $kClient = new KalturaClient(KalturaHelpers::getServiceConfiguration());
 
-    $ksId = $kClient->adminUser->login($username, $password);
+    if (empty($partner_id)) {
+
+        $ksId = $kClient->adminUser->login($username, $password);
+    } else {
+
+        $session_type = (false === $admin) ? KalturaSessionType::USER : KalturaSessionType::ADMIN;
+        $ksId = $kClient->session->start($secret, '',  $session_type, $partner_id);
+    }
 
     $kClient->setKs($ksId);
 
@@ -94,7 +124,7 @@ function kaltura_login() {
 
 function kaltura_get_players() {
 
-    $kClient = kaltura_login();
+    $kClient = kaltura_login(true);
 
     $resultObject = $kClient->uiConf->listAction(null, null);
 
@@ -141,5 +171,56 @@ function kaltura_get_video_type_entry($entryid) {
     }
 
     return $object;
+}
+
+/**
+ * Return the UI Conf ID of a player
+ *
+ * @param string - the type of player to be used
+ * @return int - the ui_conf id of the player
+ *
+ */
+function get_player_uiconf($type = 'player') {
+    $uiconf      = 0;
+    $config_name = '';
+
+    switch ($type) {
+        case 'player_editor':
+            $config_name = 'kaltura_player_editor';
+            break;
+        case 'player_dark':
+            $config_name = 'kaltura_player_regular_dark';
+            break;
+        case 'player_light':
+            $config_name = 'kaltura_player_regular_light';
+            break;
+        case 'player_mix_dark':
+            $config_name = 'kaltura_player_mix_dark';
+            break;
+        case 'player_mix_light':
+            $config_name = 'kaltura_player_mix_light';
+            break;
+        case 'player_presentation':
+            $config_name = 'kaltura_player_video_presentation';
+            break;
+        case 'player_uploader':
+            $config_name = 'kaltura_uploader_regular';
+            break;
+        case 'player_mix_uploader':
+            $config_name = 'kaltura_uploader_mix';
+            break;
+        default:
+            break;
+    }
+
+    if (!empty($config_name)) {
+        $uiconf = get_config(KALTURA_PLUGIN_NAME, $config_name);
+
+        if (empty($uiconf)) {
+            $uiconf = get_config(KALTURA_PLUGIN_NAME, "{$config_name}_cust");
+        }
+    }
+
+    return $uiconf;
 }
 ?>

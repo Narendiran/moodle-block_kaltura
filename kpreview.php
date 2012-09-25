@@ -39,7 +39,7 @@ $preview_video_type = (KalturaEntryType::MEDIA_CLIP == $type) ? KalturaEntryType
 
 echo embed_kaltura($id, get_width($entry), get_height($entry), $preview_video_type, $design);
 
-echo '<div id="kpreview-close">
+echo '<div id="kaltura-preview-close">
      <input type="button"  value="' .
      get_string('close','block_kaltura') . '" onclick="window.parent.kalturaCloseModalBox();" />
      </div>';

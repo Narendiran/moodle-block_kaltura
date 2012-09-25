@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $string['blockname'] = 'Kaltura Video Extension';
 $string['blocknotinitialized'] = 'The Kaltura Video Extension has not been initialized.  Please go to Manage Blocks and input the appropriate settings to initialize the block.';
 $string['errorinit'] = 'The Kaltura plug-in has not been properly initialized.  Please verify all the settings and click save';
@@ -139,7 +139,7 @@ $string['kaltur_player_count_wrong'] = 'Attention';
 $string['kaltur_player_count_right'] = 'Important';
 $string['disclaimer'] = 'Warning: Changing the Playback Player Settings can affect the performance a functionality '.
                         'of the Kaltura plug-in and activities.  Leave the settings to the defaults if you are unsure.';
-$string['error_player_count'] = 'You need to select which custom players to use for play back.  Then click save changes.';
+$string['error_player_count'] = '<b>You need to select which custom players to use for play back.  Then click save changes.</b>';
 $string['custplayer_heading'] = 'Playback Play Settings';
 $string['custplayer_heading_desc'] = 'The settings below allow you to select your own custom players for video playback';
 $string['publisherid'] = 'Publisher ID';
@@ -180,4 +180,19 @@ $string['video_presentation'] = 'Video presentation (default)';
 $string['legacy_video_presentation'] = 'Video presentation (legacy)';
 $string['kaltura_player_video_presentation'] = 'Video Presentation';
 $string['kaltura_player_video_presentation_desc'] = 'Player used to play back PPT videos';
+$string['custom_player'] = 'Custom player';
+$string['custom_ui_conf'] = 'Custom UIconf';
+$string['player_editor_cust_desc'] = 'Only used if you have a custom player editor UIConf ID';
+$string['player_regular_dark_cust_desc'] = 'Only used if you have a custom dark player UIConf ID';
+$string['player_regular_light_cust_desc'] = 'Only used if you have a custom light player UIConf ID';
+$string['player_mix_dark_desc'] = 'Only used if you have a custom dark mix player UIConf ID';
+$string['player_mix_light_desc'] = 'Only used if you have a custom light mix player UIConf ID';
+$string['player_video_presentation_cust_desc'] = 'Only used if you have a custom video presentation player';
+$string['uploader_regular_desc'] = 'Only used if you have a custom video uploader widget';
+$string['kaltura_uploader_mix_desc'] = 'Only used if you have a custom video mix uploader widget';
+
+// ---- INSTANCE PAGE STRING ---- //
+$string['instance_config'] = 'No editing required.  This block is required for Kaltura to properly backup and restore.';
+
+
 ?>

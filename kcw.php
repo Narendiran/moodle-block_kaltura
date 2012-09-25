@@ -46,7 +46,7 @@ if (0 == strcmp($mod, 'video_resource')) {
 
     $properties = array('divcw'         => 'divKalturaCw',
                         'updatefield'   => 'id_alltext',
-                        'divprops'      => 'divClipProps',
+                        'divprops'      => 'kaltura-divClipProps',
                         'mod'           => 'video_resource',
                         );
 
@@ -74,11 +74,9 @@ if (0 == strcmp($mod, 'video_resource')) {
 
 if (0 == strcmp($mod, 'video_resource')) {
 
-
-
     echo get_cw_properties_pane($entry, $type);
-    echo get_cw_props_player('divClip', 400, 332);
-}
+    echo get_cw_props_player('divClip', $type, 400, 332);
 
+}
 
 ?>

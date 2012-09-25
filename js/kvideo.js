@@ -56,10 +56,10 @@ function kalturaInitModalBox ( url, options ) {
     // Get border and margin information about div-page
 //    var popup = document.getElementById;
     
-    if (document.getElementById("overlay")) {
+    if (document.getElementById("kaltura-overlay")) {
 
-        overlay_obj = document.getElementById("overlay");
-        modalbox_obj = document.getElementById("modalbox");
+        overlay_obj = document.getElementById("kaltura-overlay");
+        modalbox_obj = document.getElementById("kaltura-modalbox");
         overlay_obj.parentNode.removeChild( overlay_obj );
         modalbox_obj.parentNode.removeChild( modalbox_obj );        
     }
@@ -69,7 +69,7 @@ function kalturaInitModalBox ( url, options ) {
     // create overlay div and hardcode some functional styles (aesthetic styles are in CSS file)
     var objOverlay = document.createElement("div");
 
-    objOverlay.setAttribute('id','overlay');
+    objOverlay.setAttribute('id','kaltura-overlay');
     objBody.appendChild(objOverlay, objBody.firstChild);
 
     // RL - EDIT
@@ -94,7 +94,7 @@ function kalturaInitModalBox ( url, options ) {
     // create modalbox div, same note about styles as above
     var objModalbox = document.createElement("div");
 
-    objModalbox.setAttribute('id','modalbox');
+    objModalbox.setAttribute('id','kaltura-modalbox');
     //objModalbox.setAttribute('style', 'width:'+width+'px;height:'+height+'px;margin-top:'+(0-height/2)+'px;margin-left:'+(0-width/2)+'px;');
     objModalbox.style.width = width+'px';
     objModalbox.style.height = height+'px';
@@ -185,8 +185,8 @@ function kalturaInitModalBox ( url, options ) {
 function kalturaCloseModalBox () {
     
     // TODO - have some JS to close the modalBox without refreshing the page if there is no need
-    var overlay_obj  = document.getElementById("overlay");
-    var modalbox_obj = document.getElementById("modalbox");
+    var overlay_obj  = document.getElementById("kaltura-overlay");
+    var modalbox_obj = document.getElementById("kaltura-modalbox");
     var iframe_obj   = document.getElementById("kaltura_modal_iframe");
     var kcwdiv       = null;
     
@@ -245,10 +245,25 @@ function update_field(field_name, value, close_modal, presspost) {
     if (this != window.top) {
 
         window.top.update_field(field_name, value, close_modal, presspost);
-          return false;
+
+        return false;
     }
 
     document.getElementById(field_name).value = value;
+
+    //Enabled disabled submit buttons
+    var submit = document.getElementById('id_submitbutton');
+
+    if (submit) {
+        submit.disabled = false;
+    }
+    
+    var submit2 = document.getElementById('id_submitbutton2');
+
+    if (submit2) {
+        submit2.disabled = false;
+    }
+
 //    if (presspost != '') window.top.document.getElementById(presspost).click();
     
     if (presspost != '') {
@@ -346,10 +361,10 @@ function load_item_to_view(entry_id,url,type) {
     switch_item_in_player(entry_id,type);
 
     if (current_item != '') {
-        document.getElementById(current_item).className = 'kobj';
+        document.getElementById(current_item).className = 'kaltura-obj';
     }
 
-    document.getElementById(entry_id).className = 'kobj active';
+    document.getElementById(entry_id).className = 'kaltura-obj active';
 
     current_item = entry_id;
 
@@ -453,8 +468,8 @@ function fix_window_size(options) {
     }
 
     $('#kaltura_modal_iframe').width(width).height(height);
-    $('#modalbox').width(width).height(height);
-    objModalbox = document.getElementById('modalbox');
+    $('#kaltura-modalbox').width(width).height(height);
+    objModalbox = document.getElementById('kaltura-modalbox');
 
     if(objModalbox) {
         objModalbox.style.marginTop = (0-height/2)+'px';

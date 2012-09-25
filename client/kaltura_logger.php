@@ -4,9 +4,15 @@ class KalturaLogger implements IKalturaLogger {
     }
 
     public function log($str)  {
-        // echo $str . "<br/>\n";
+        global $CFG;
 
-        $myFile = "/tmp/logger.txt";
+        /* added option to disable log from moodle's config */
+        if(isset($CFG->disableKalturaLog) && $CFG->disableKalturaLog == true) {
+            return;
+        }
+
+        //$myFile = "/tmp/logger.txt";
+        $myFile = $CFG->dataroot.DIRECTORY_SEPARATOR.'kaltura.log';
         $fh = fopen($myFile, 'a');
         $stringData = $str . " \n";
         fwrite($fh, $stringData);

@@ -23,22 +23,27 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once('locallib.php');
+require_once('lib.php');
+
+require_js(array('yui_yahoo', 'yui_event', 'yui_dom'));
+require_js($CFG->wwwroot.'/blocks/kaltura/js/settings.js');
 
 // Test connection status
 $conntype   = get_config(KALTURA_PLUGIN_NAME, 'kaltura_conn_server');
 $uri        = get_config(KALTURA_PLUGIN_NAME, 'kaltura_uri');
 $login      = get_config(KALTURA_PLUGIN_NAME, 'kaltura_login');
 $password   = get_config(KALTURA_PLUGIN_NAME, 'kaltura_password');
+$partner_id = get_config(KALTURA_PLUGIN_NAME, 'kaltura_partner_id');
+$secret     = get_config(KALTURA_PLUGIN_NAME, 'kaltura_adminsecret');
 
 $connected = false;
 
-if (!empty($uri) and
-    !empty($login) and
-    !empty($password) and
-    kaltura_init_hosted_account($login, $password, $uri)) {
+if (!empty($uri) &&
+    ( !empty($partner_id) ) ||
+    ( !empty($login) and !empty($password) ) ) {
 
-    $connected = true;
+    $connected = kaltura_init_hosted_account($login, $password, $partner_id, $secret);
+
 }
 
 $validconfig = false;
@@ -47,23 +52,6 @@ if ($connected) {
     // Print connection status message
     $settings->add(new admin_setting_heading('kaltur_conn_status', get_string('conn_status_title', 'block_kaltura'),
                    get_string('init'.$conntype, 'block_kaltura')));
-
-    // Check if all the custom players have been saved to the configuration table
-    $sql = "SELECT COUNT(*) FROM {$CFG->prefix}config_plugins WHERE name ". sql_ilike() . " 'kaltura_player_%'";
-    $player_count = intval(count_records_sql($sql));
-
-    $sql = "SELECT COUNT(*) FROM {$CFG->prefix}config_plugins WHERE name ". sql_ilike() . " 'kaltura_uploader_%'";
-    $player_count = $player_count + intval(count_records_sql($sql));
-
-    $validconfig = (KALTURA_PLAYER_COUNT != intval($player_count)) ? false : true;
-
-    if (!$validconfig) {
-
-        // Print connection status message
-        $settings->add(new admin_setting_heading('kaltur_player_count_wrong',
-                    get_string('kaltur_player_count_wrong', 'block_kaltura'),
-                    get_string('error_player_count', 'block_kaltura')));
-    }
 
 } else {
     // Print connection status message
@@ -120,6 +108,10 @@ if ($connected) {
         $custplayers[$playerobj->id] = format_string($playerobj->name);
     }
 
+    $manualplayer[0] = get_string('custom_player', 'block_kaltura');
+    $custplayers += $manualplayer;
+
+
     // Connection selection
     if ($validconfig) {
         $blurb = get_string('custplayer_heading_desc', 'block_kaltura') . '<br /><br />' . get_string('disclaimer', 'block_kaltura');
@@ -131,74 +123,118 @@ if ($connected) {
                        $blurb));
 
     // Print players drop down menus
+
+    /// PLAYER EDITOR
     $choices = array(KALTURA_PLAYER_PLAYEREDITOR        => get_string('player_editor', 'block_kaltura'),
                      KALTURA_LEGACY_PLAYER_PLAYEREDITOR => get_string('legacy_player_editor', 'block_kaltura')) + $custplayers;
 
     $adminsetting = new admin_setting_configselect('kaltura_player_editor', get_string('kaltura_player_editor', 'block_kaltura'),
-                       get_string('kaltura_player_editor_desc', 'block_kaltura'), '1002226', $choices);
+                       get_string('kaltura_player_editor_desc', 'block_kaltura'), KALTURA_PLAYER_PLAYEREDITOR, $choices);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
+
+    $adminsetting = new admin_setting_configtext('kaltura_player_editor_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('player_editor_cust_desc', 'block_kaltura'), '', PARAM_INT);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 
 
+    /// UPLOADER REGULAR
     $choices = array(KALTURA_PLAYER_UPLOADERREGULAR         => get_string('player_uploader_regular', 'block_kaltura'),
-                     KALTURA_LEGACY_PLAYER_UPLOADERREGULAR  => get_string('legacy_player_uploader_regular', 'block_kaltura')) + $custplayers;
+                     KALTURA_LEGACY_PLAYER_UPLOADERREGULAR  => get_string('legacy_player_uploader_regular', 'block_kaltura')) + $manualplayer;
 
     $adminsetting = new admin_setting_configselect('kaltura_uploader_regular', get_string('kaltura_uploader_regular', 'block_kaltura'),
-                       get_string('kaltura_uploader_regular_desc', 'block_kaltura'), '1002217', $choices);
+                       get_string('kaltura_uploader_regular_desc', 'block_kaltura'), KALTURA_PLAYER_UPLOADERREGULAR, $choices);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
+
+    $adminsetting = new admin_setting_configtext('kaltura_uploader_regular_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('uploader_regular_desc', 'block_kaltura'), '', PARAM_INT);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 
 
+    /// UPLOADER MIX
     $choices = array(KALTURA_PLAYER_UPLOADERMIX         => get_string('player_uploader_mix', 'block_kaltura'),
-                     KALTURA_LEGACY_PLAYER_UPLOADERMIX  => get_string('legacy_player_uploader_mix', 'block_kaltura')) + $custplayers;
+                     KALTURA_LEGACY_PLAYER_UPLOADERMIX  => get_string('legacy_player_uploader_mix', 'block_kaltura')) + $manualplayer;
 
     $adminsetting = new admin_setting_configselect('kaltura_uploader_mix', get_string('kaltura_uploader_mix', 'block_kaltura'),
-                       get_string('kaltura_uploader_mix_desc', 'block_kaltura'), '1002225', $choices);
+                       get_string('kaltura_uploader_mix', 'block_kaltura'), KALTURA_PLAYER_UPLOADERMIX, $choices);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 
+    $adminsetting = new admin_setting_configtext('kaltura_uploader_mix_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('kaltura_uploader_mix_desc', 'block_kaltura'), '', PARAM_INT);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
 
+    /// REGULAR PLAYER DARK
     $choices = array(KALTURA_PLAYER_PLAYERREGULARDARK           => get_string('player_regular_dark', 'block_kaltura'),
                      KALTURA_LEGACY_PLAYER_PLAYERREGULARDARK    => get_string('legacy_player_regular_dark', 'block_kaltura')) + $custplayers;
 
     $adminsetting = new admin_setting_configselect('kaltura_player_regular_dark', get_string('kaltura_player_regular_dark', 'block_kaltura'),
-                       get_string('kaltura_player_regular_dark_desc', 'block_kaltura'), '1002712', $choices);
+                       get_string('kaltura_player_regular_dark_desc', 'block_kaltura'), KALTURA_PLAYER_PLAYERREGULARDARK, $choices);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 
+    $adminsetting = new admin_setting_configtext('kaltura_player_regular_dark_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('player_regular_dark_cust_desc', 'block_kaltura'), '', PARAM_INT);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
 
+    /// REGULAR PLAYER LIGHT
     $choices = array(KALTURA_PLAYER_PLAYERREGULARLIGHT          => get_string('player_regular_light', 'block_kaltura'),
                      KALTURA_LEGACY_PLAYER_PLAYERREGULARLIGHT   => get_string('legacy_player_regular_light', 'block_kaltura')) + $custplayers;
 
     $adminsetting = new admin_setting_configselect('kaltura_player_regular_light', get_string('kaltura_player_regular_light', 'block_kaltura'),
-                       get_string('kaltura_player_regular_light_desc', 'block_kaltura'), '1002711', $choices);
+                       get_string('kaltura_player_regular_light_desc', 'block_kaltura'), KALTURA_PLAYER_PLAYERREGULARLIGHT, $choices);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 
+    $adminsetting = new admin_setting_configtext('kaltura_player_regular_light_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('player_regular_light_cust_desc', 'block_kaltura'), '', PARAM_INT);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
 
+    /// PLAYER MIX DARK
     $choices = array(KALTURA_PLAYER_PLAYERMIXDARK           => get_string('player_mix_dark', 'block_kaltura'),
-                     KALTURA_LEGACY_PLAYER_PLAYERMIXDARK    => get_string('legacy_player_mix_dark', 'block_kaltura')) + $custplayers;
+                     KALTURA_LEGACY_PLAYER_PLAYERMIXDARK    => get_string('legacy_player_mix_dark', 'block_kaltura')) + $manualplayer;
 
     $adminsetting = new admin_setting_configselect('kaltura_player_mix_dark', get_string('kaltura_player_mix_dark', 'block_kaltura'),
-                       get_string('kaltura_player_mix_dark_desc', 'block_kaltura'), '1002259', $choices);
+                       get_string('kaltura_player_mix_dark_desc', 'block_kaltura'), KALTURA_PLAYER_PLAYERMIXDARK, $choices);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 
+    $adminsetting = new admin_setting_configtext('kaltura_player_mix_dark_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('player_mix_dark_desc', 'block_kaltura'), '', PARAM_INT);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
 
+    // PLAYER MIX LIGHT
     $choices = array(KALTURA_PLAYER_PLAYERMIXLIGHT                  => get_string('player_mix_light', 'block_kaltura'),
-                     KALTURA_LEGACY_LEGACY_PLAYER_PLAYERMIXLIGHT    => get_string('legacy_player_mix_light', 'block_kaltura')) + $custplayers;
+                     KALTURA_LEGACY_LEGACY_PLAYER_PLAYERMIXLIGHT    => get_string('legacy_player_mix_light', 'block_kaltura')) + $manualplayer;
 
     $adminsetting = new admin_setting_configselect('kaltura_player_mix_light', get_string('kaltura_player_mix_light', 'block_kaltura'),
-                       get_string('kaltura_player_mix_light_desc', 'block_kaltura'), '1002260', $choices);
+                       get_string('kaltura_player_mix_light_desc', 'block_kaltura'), KALTURA_PLAYER_PLAYERMIXLIGHT, $choices);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 
+    $adminsetting = new admin_setting_configtext('kaltura_player_mix_light_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('player_mix_light_desc', 'block_kaltura'), '', PARAM_INT);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
 
+    /// PLAYER VIDEO PRESENTATION
     $choices = array(KALTURA_PLAYER_PLAYERVIDEOPRESENTATION         => get_string('video_presentation', 'block_kaltura'),
-                     KALTURA_LEGACY_PLAYER_PLAYERVIDEOPRESENTATION  => get_string('legacy_video_presentation', 'block_kaltura')) + $custplayers;
+                     KALTURA_LEGACY_PLAYER_PLAYERVIDEOPRESENTATION  => get_string('legacy_video_presentation', 'block_kaltura')) + $manualplayer;
 
     $adminsetting = new admin_setting_configselect('kaltura_player_video_presentation', get_string('kaltura_player_video_presentation', 'block_kaltura'),
-                       get_string('kaltura_player_video_presentation_desc', 'block_kaltura'), '1003069', $choices);
+                       get_string('kaltura_player_video_presentation_desc', 'block_kaltura'), KALTURA_PLAYER_PLAYERVIDEOPRESENTATION, $choices);
+    $adminsetting->plugin = KALTURA_PLUGIN_NAME;
+    $settings->add($adminsetting);
+
+    $adminsetting = new admin_setting_configtext('kaltura_player_video_presentation_cust', get_string('custom_ui_conf', 'block_kaltura'),
+                       get_string('player_video_presentation_cust_desc', 'block_kaltura'), '', PARAM_INT);
     $adminsetting->plugin = KALTURA_PLUGIN_NAME;
     $settings->add($adminsetting);
 

@@ -24,7 +24,9 @@
 class block_kaltura extends block_base {
     function init() {
         $this->title   = get_string('blockname','block_kaltura');
-        $this->version = 2012060803;
+        $this->version = 2012060805;
+        $this->release  = '1.2';
+
     }
 
     function get_content() {
@@ -374,6 +376,304 @@ class block_kaltura extends block_base {
                 }
             }
 
+            // Migrate old plugin settings
+            $this->migrate_old_plugin_settings();
+        }
+    }
+
+    /**
+     * This function searches through the config_plugins table for Kaltura
+     * related configuration values.  The logic works as follows:
+     * 1. Search the config table where name is like 'kaltura'
+     *
+     * 2. Copy the kaltura secret, adminsecret username, username and partnerid
+     * to the config_plugins table using the current naming convention.
+     *
+     * This occurs with a certain version of the Kaltura plugin
+     *
+     * 3. Search the config_plugins table where plugin like
+     * 'kaltura'
+     *
+     * 4. Copy the kaltua secret, adminsecret, username, password and partnerid
+     * to the config_plugins table using the current naming convention
+     *
+     * This occurs with a different version of the Kaltura plugin
+     *
+     * @param nothing
+     * @return nothing
+     */
+    function migrate_old_plugin_settings() {
+
+        $this->migrate_config_table_settings();
+
+        $this->migrate_config_plugin_table_settings();
+
+    }
+
+    /**
+     * This function supports Kaltura's version of the Kaltura module
+     * Note: Username and passwords were not stored in the config table
+     */
+    function migrate_config_plugin_table_settings() {
+        global $CFG;
+
+        // Search the config table for Kaltura configuration values
+        $sql = "SELECT * FROM {$CFG->prefix}config_plugins " .
+               "WHERE plugin = 'kaltura' ";
+
+        $records = get_records_sql($sql);
+
+        if (empty($records)) {
+            $records = array();
+        }
+
+        foreach ($records as $record) {
+
+            switch ($record->name) {
+                case 'server_uri':
+                    // If the value is kaltura.com then assume SaaS, otherwise CE
+                    if (0 == strcmp($record->value, 'http://www.kaltura.com')) {
+                        set_config('kaltura_conn_server', 'hosted', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_conn_server', 'ce', 'block_kaltura');
+                    }
+
+                    set_config('kaltura_uri', $record->value, 'block_kaltura');
+                    break;
+
+                case 'secret':
+                    set_config('kaltura_secret', $record->value, 'block_kaltura');
+                    break;
+
+                case 'adminsecret':
+                    set_config('kaltura_adminsecret', $record->value, 'block_kaltura');
+                    break;
+
+                case 'partner_id':
+                    set_config('kaltura_partner_id', $record->value, 'block_kaltura');
+                    break;
+
+                case 'uploader_regular':
+                    if (1002217 == $record->value) {
+                        set_config('kaltura_uploader_regular', '7632751', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_uploader_regular', '0', 'block_kaltura');
+                        set_config('kaltura_uploader_regular_cust', $record->value, 'block_kaltura');
+                    }
+
+                    break;
+
+                case 'uploader_mix':
+                    if (1002225 == $record->value) {
+                        set_config('kaltura_uploader_mix', '4395701', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_uploader_mix', '0', 'block_kaltura');
+                        set_config('kaltura_uploader_mix_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'editor':
+                    if (1002226 == $record->value) {
+                        set_config('kaltura_player_editor', '4395711', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_editor', '0', 'block_kaltura');
+                        set_config('kaltura_player_editor_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'player_regular_dark':
+                    if (1002712 == $record->value) {
+                        set_config('kaltura_player_regular_dark', '4674741', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_regular_dark', '0', 'block_kaltura');
+                        set_config('kaltura_player_regular_dark_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'player_regular_light':
+                    if (1002711 == $record->value) {
+                        set_config('kaltura_player_regular_light', '4674731', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_regular_light', '0', 'block_kaltura');
+                        set_config('kaltura_player_regular_light_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'player_mix_dark':
+                    if (1002259 == $record->value) {
+                        set_config('kaltura_player_mix_dark', '4860321', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_mix_dark', '0', 'block_kaltura');
+                        set_config('kaltura_player_mix_dark_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'player_mix_light':
+                    if (1002260 == $record->value) {
+                        set_config('kaltura_player_mix_light', '4860311', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_mix_light', '0', 'block_kaltura');
+                        set_config('kaltura_player_mix_light_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'video_presentation':
+                    if (1003069 == $record->value) {
+                        set_config('kaltura_player_video_presentation', '4860481', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_video_presentation', '0', 'block_kaltura');
+                        set_config('kaltura_player_video_presentation_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+            }
+        }
+
+    }
+
+    /**
+     * This method supports the original RL version of the Kaltura module
+     * Note: the location of the configuration value were stored in a different
+     * table
+     */
+    function migrate_config_table_settings() {
+        global $CFG;
+
+        // Search the config table for Kaltura configuration values
+        $sql = "SELECT * FROM {$CFG->prefix}config " .
+               "WHERE name " . sql_ilike() . " '%kaltura%' ".
+               "ORDER BY name DESC";
+
+        $records = get_records_sql($sql);
+
+        if (empty($records)) {
+            $records = array();
+        }
+
+        foreach ($records as $record) {
+
+            switch ($record->name) {
+                case 'kaltura_conn_server':
+                    set_config('kaltura_conn_server', $record->value, 'block_kaltura');
+                    break;
+
+                case 'kaltura_uri':
+                case 'kaltura_hosted_uri':
+                case 'kaltura_ce_uri':
+                    // Only set the URI if it is empty
+                    $uri = get_config('block_kaltura', 'kaltura_uri');
+
+                    if (empty($uri)) {
+                        set_config('kaltura_uri', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_login':
+                case 'kaltura_hosted_login':
+                case 'kaltura_ce_login': // For a period of time in 2010 separate CE settings existed
+                    // Only set the URI if it is empty
+                    $uri = get_config('block_kaltura', 'kaltura_login');
+
+                    if (empty($uri)) {
+                        set_config('kaltura_login', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_password':
+                case 'kaltura_hosted_password':
+                case 'kaltura_ce_password':
+                    // Only set the URI if it is empty
+                    $uri = get_config('block_kaltura', 'kaltura_password');
+
+                    if (empty($uri)) {
+                        set_config('kaltura_password', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_secret':
+                    set_config('kaltura_secret', $record->value, 'block_kaltura');
+                    break;
+
+                case 'kaltura_adminsecret':
+                    set_config('kaltura_adminsecret', $record->value, 'block_kaltura');
+                    break;
+
+                case 'kaltura_partner_id':
+                    set_config('kaltura_partner_id', $record->value, 'block_kaltura');
+                    break;
+
+                case 'kaltura_uploader_regular':
+                    if (1002217 == $record->value) {
+                        set_config('kaltura_uploader_regular', '7632751', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_uploader_regular', '0', 'block_kaltura');
+                        set_config('kaltura_uploader_regular_cust', $record->value, 'block_kaltura');
+                    }
+
+                    break;
+
+                case 'kaltura_uploader_mix':
+                    if (1002225 == $record->value) {
+                        set_config('kaltura_uploader_mix', '4395701', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_uploader_mix', '0', 'block_kaltura');
+                        set_config('kaltura_uploader_mix_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_player_editor':
+                    if (1002226 == $record->value) {
+                        set_config('kaltura_player_editor', '4395711', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_editor', '0', 'block_kaltura');
+                        set_config('kaltura_player_editor_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_player_regular_dark':
+                    if (1002712 == $record->value) {
+                        set_config('kaltura_player_regular_dark', '4674741', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_regular_dark', '0', 'block_kaltura');
+                        set_config('kaltura_player_regular_dark_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_player_regular_light':
+                    if (1002711 == $record->value) {
+                        set_config('kaltura_player_regular_light', '4674731', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_regular_light', '0', 'block_kaltura');
+                        set_config('kaltura_player_regular_light_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_player_mix_dark':
+                    if (1002259 == $record->value) {
+                        set_config('kaltura_player_mix_dark', '4860321', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_mix_dark', '0', 'block_kaltura');
+                        set_config('kaltura_player_mix_dark_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_player_mix_light':
+                    if (1002260 == $record->value) {
+                        set_config('kaltura_player_mix_light', '4860311', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_mix_light', '0', 'block_kaltura');
+                        set_config('kaltura_player_mix_light_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+
+                case 'kaltura_player_video_presentation':
+                    if (1003069 == $record->value) {
+                        set_config('kaltura_player_video_presentation', '4860481', 'block_kaltura');
+                    } else {
+                        set_config('kaltura_player_video_presentation', '0', 'block_kaltura');
+                        set_config('kaltura_player_video_presentation_cust', $record->value, 'block_kaltura');
+                    }
+                    break;
+            }
         }
     }
 

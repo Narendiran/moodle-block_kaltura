@@ -39,7 +39,6 @@ class KalturaHelpers {
         $adminSecret = $kPartner -> adminSecret;
     }
 
-    // TODO: IMPROVE THIS AND NOT MAKE IT SO ARGUMENT HEAVY
     function getContributionWizardFlashVars($ks, $type = '', $kshowId = -2, $partner_data = '',  $comment = false, $delegate = '') {
 
         $sessionUserId = '';
@@ -49,13 +48,13 @@ class KalturaHelpers {
         $flashVars = array();
 
         $flashVars['userId'] = $sessionUser->userId;
-
-		// MMU addition 2012-09-12
-	 	$flashVars['enforceTags'] = KalturaHelpers::getCourseTags();
-		$flashVars['disableCategories'] = True;
-	$flashVars['enforceCategory'] = MMU_DEFAULT_CATEGORY;
-	
         $flashVars['sessionId'] = $ks;
+
+	// Updated by MMU 2012-09-25
+	$flashVars['enforceTags'] = KalturaHelpers::getCourseTags();
+	$flashVars['disableCategories'] = True;
+	$flashVars['enforceCategory'] = MMU_DEFAULT_CATEGORY;
+
 
         if ($sessionUserId == KalturaSettings_ANONYMOUS_USER_ID) {
             $flashVars['isAnonymous'] = true;
@@ -69,11 +68,9 @@ class KalturaHelpers {
 
         if (!$comment) {
             if ($type == KalturaEntryType::MEDIA_CLIP) {
-                $flashVars['uiConfId']  = KalturaHelpers::getPlatformKey('kaltura_uploader_regular', KALTURA_PLAYER_UPLOADERREGULAR);
-                //$flashVars['uiConfId']  = KalturaHelpers::getPlatformKey('kaltura_uploader_regular', KALTURA_LEGACY_PLAYER_UPLOADERREGULAR);
+                $flashVars['uiConfId'] = get_player_uiconf('player_uploader');
             } else {
-                $flashVars['uiConfId']  = KalturaHelpers::getPlatformKey('kaltura_uploader_mix', KALTURA_PLAYER_UPLOADERMIX);
-                //$flashVars['uiConfId']  = KalturaHelpers::getPlatformKey('kaltura_uploader_regular', KALTURA_LEGACY_PLAYER_UPLOADERMIX);
+                $flashVars['uiConfId']  = get_player_uiconf('player_mix_uploader');
             }
         } else {
             $flashVars['uiConfId']      = KalturaSettings_CW_COMMENTS_UICONF_ID; //TODO - not sure what this is
@@ -108,7 +105,7 @@ class KalturaHelpers {
         $flashVars['ks'] 			= $ks;
         $flashVars['backF'] 		= 'onSimpleEditorBackClick';
         $flashVars['saveF'] 		= 'onSimpleEditorSaveClick';
-        $flashVars['uiConfId'] 		= KalturaHelpers::getPlatformKey('kaltura_player_editor', null);
+        $flashVars['uiConfId'] 		= get_player_uiconf('player_editor');
 
         return $flashVars;
     }
@@ -152,9 +149,13 @@ class KalturaHelpers {
     function getContributionWizardUrl($type) {
 
         if ($type == KalturaEntryType::MEDIA_CLIP) {
-            return KalturaHelpers::getKalturaServerUrl() . '/kcw/ui_conf_id/' . KalturaHelpers::getPlatformKey('kaltura_uploader_regular', KALTURA_PLAYER_UPLOADERREGULAR);
+            return KalturaHelpers::getKalturaServerUrl() .
+                  '/kcw/ui_conf_id/' .
+                  get_player_uiconf('player_uploader');
         } else {
-			  return KalturaHelpers::getKalturaServerUrl() . '/kcw/ui_conf_id/' . KalturaHelpers::getPlatformKey('kaltura_uploader_mix', KALTURA_PLAYER_UPLOADERMIX);
+			  return KalturaHelpers::getKalturaServerUrl() .
+                     '/kcw/ui_conf_id/' .
+                     get_player_uiconf('player_mix_uploader');
         }
     }
 
@@ -179,21 +180,14 @@ class KalturaHelpers {
         if ($type == KalturaEntryType::MEDIA_CLIP) {
 
 
-            $sql = "SELECT id, name, value FROM {$CFG->prefix}config_plugins WHERE plugin = '". KALTURA_PLUGIN_NAME .
-                   "' AND name $like 'kaltura_player_regular%'";
+            $arr['dark']  = get_string('kaltura_player_regular_dark', 'block_kaltura');
+            $arr['light'] = get_string('kaltura_player_regular_light', 'block_kaltura');
 
-            $temp_arr = get_records_sql($sql);
         } else {
 
-            $sql = "SELECT id, name, value FROM {$CFG->prefix}config_plugins WHERE plugin = '". KALTURA_PLUGIN_NAME .
-                   "' AND name $like 'kaltura_player_mix%'";
-            $temp_arr = get_records_sql($sql);
-        }
+            $arr['dark']  = get_string('kaltura_player_mix_dark', 'block_kaltura');
+            $arr['light'] = get_string('kaltura_player_mix_light', 'block_kaltura');
 
-        foreach($temp_arr as $k => $v) {
-
-            $parts =  explode ('_', $v->name); // the convention is player_mix_THENAME or player_regular_THENAME
-            $arr[$parts[count($parts)-1]] = $parts[count($parts)-1];
         }
 
         return $arr;
@@ -319,7 +313,7 @@ class KalturaHelpers {
         $kalturaUser = new KalturaUser();
 
         if ($USER->id) {
-		// changed from $USER->id by MMU 2012-09-21
+		// Updated by MMU 2012-09-25
             $kalturaUser->userId= $USER->username;
             $kalturaUser->screenName = $USER->username;
         } else {
@@ -329,7 +323,8 @@ class KalturaHelpers {
         return $kalturaUser;
     }
 
-	// New function added by MMU 2012-09-12
+
+	// New function added by MMU 2012-09-25
 	function getCourseTags() {
 		global $COURSE;
 
@@ -342,6 +337,7 @@ class KalturaHelpers {
 		}
 		return $kalturaCourseTags;
 	}
+
 
     function getKalturaClient($isAdmin = false, $privileges = null) {
 

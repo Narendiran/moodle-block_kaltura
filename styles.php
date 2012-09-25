@@ -1,8 +1,3 @@
-<?php
-header('Content-type: text/css');
-
-global $CFG;
-?>
 /*
 This file is part of the Kaltura Collaborative Media Suite which allows users
 to do with audio, video, and animation what Wiki platfroms allow them to do with
@@ -29,7 +24,7 @@ html,body {
     height:100%;
 }
 
-#modalbox {
+#kaltura-modalbox {
     position: fixed;
     left: 50%;
     top: 50%;
@@ -39,7 +34,7 @@ html,body {
     width: 680px; z-index: 200;
 }
 
-#overlay {
+#kaltura-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -51,28 +46,28 @@ html,body {
 }
 
 
-#modalbox.white_bg {
+#kaltura-modalbox.white_bg {
     background:#ffffff;
 }
 
 /* Fixed posistioning emulation for IE6, currently no need because its being set via the JQM js to offset the wizard in the middle */
-* html #overlay {
+* html #kaltura-overlay {
     position: absolute;
     background:#000;
     filter: alpha(opacity=40);
     top: expression((document.documentElement.scrollTop || document.body.scrollTop) + Math.round(0 * (document.documentElement.offsetHeight || document.body.clientHeight) / 100) + 'px');
  }
 
-* html #modalbox {
+* html #kaltura-modalbox {
     position: absolute;
     top: expression((document.documentElement.scrollTop || document.body.scrollTop) + Math.round((document.documentElement.offsetHeight || document.body.clientHeight) / 2) + 'px');
 }
 
-#modalbox iframe {
+#kaltura-modalbox iframe {
     overflow:hidden;
 }
 
-#modalbox iframe.remove_overflow {
+#kaltura-modalbox iframe.remove_overflow {
     overflow:auto;
 }
 
@@ -83,11 +78,6 @@ html,body {
     line-height:11px;
     overflow: hidden;
     text-align: right;
-}
-
-kalturaCode {
-    font-size: 20px;
-    padding: 5px;
 }
 
 body#kaltura-kcw,
@@ -108,7 +98,7 @@ body#kaltura-kcw #page #container {
     border:0px;
 }
 
-#blocks-kaltura-kcw div#divClipProps {
+#blocks-kaltura-kcw div#kaltura-divClipProps {
     font-size: 13px;
 }
 
@@ -125,7 +115,7 @@ body#kaltura-kcw #page #container {
 
 }
 
-#blocks-kaltura-kswfdoc div#iframe-page {
+#blocks-kaltura-kswfdoc div#kaltura-iframe-page {
   margin-top: 0px;
   margin-bottom: 0px;
   margin-left: 0px;
@@ -143,11 +133,11 @@ body#kaltura-kcw #page #container {
 
 }
 
-#blocks-kaltura-kcw #iframe-page #iframe-content,
-#blocks-kaltura-kswfdoc #iframe-page #iframe-content,
-#blocks-kaltura-preview #iframe-page #iframe-content,
-#blocks-kaltura-keditor #iframe-page #iframe-content,
-#blocks-kaltura-kmix #iframe-page #iframe-content, {
+#blocks-kaltura-kcw #kaltura-iframe-page #kaltura-iframe-content,
+#blocks-kaltura-kswfdoc #kaltura-iframe-page #kaltura-iframe-content,
+#blocks-kaltura-preview #kaltura-iframe-page #kaltura-iframe-content,
+#blocks-kaltura-keditor #kaltura-iframe-page #kaltura-iframe-content,
+#blocks-kaltura-kmix #kaltura-iframe-page #kaltura-iframe-content, {
   margin-top: 0px;
   margin-bottom: 0px;
   margin-left: 0px;
@@ -157,11 +147,11 @@ body#kaltura-kcw #page #container {
 
 /* Must do this for popup windows. Otherwise the regular Moodle theme
  will be affected */
-#blocks-kaltura-kcw #iframe-page,
-#blocks-kaltura-kswfdoc #iframe-page,
-#blocks-kaltura-preview #iframe-page,
-#blocks-kaltura-keditor #iframe-page,
-#blocks-kaltura-kmix #iframe-page, {
+#blocks-kaltura-kcw #kaltura-iframe-page,
+#blocks-kaltura-kswfdoc #kaltura-iframe-page,
+#blocks-kaltura-preview #kaltura-iframe-page,
+#blocks-kaltura-keditor #kaltura-iframe-page,
+#blocks-kaltura-kmix #kaltura-iframe-page, {
   margin-top: 0px;
   margin-bottom: 0px;
   margin-left: 0px;
@@ -219,7 +209,7 @@ body#kaltura-kcw #page #container {
   padding-right: 0px;
 }
 
-#iframe-page {
+#kaltura-iframe-page {
   background-color:#FFFFFF;
 }
 #blocks-kaltura-kswfdoc {
@@ -241,11 +231,70 @@ body#kaltura-kcw #page #container {
     font-size:10px;
 }
 
-#klibrary {
-    overflow:hidden;
-    float:left;
+.kaltura-obj {
+    width: 150px;
+    padding:10px;
+    border: 1px solid #666666;
+    margin: 5px;
+    float: left;
+    height:150px;
 }
 
+div.kaltura-obj.active {
+    background-color:#cccccc;
+}
+
+.kaltura-obj div span {
+    display:block;
+}
+
+#static_library_player_div {
+    height: 364px;
+    width: 410px;
+    overflow: hidden;
+}
+
+.poweredByKaltura {
+    display: none;
+}
+
+#kaltura-divClipProps #divUserSlected {
+    margin-left: 416px;
+    margin-top: -350px;
+}
+
+#kaltura-divClipProps #divDesign {
+    width: 350px;
+    margin-top: 40px;
+}
+
+#kaltura-divClipProps #divDim {
+    margin: 40px 0px 0px 0px;
+    width: 350px;
+}
+
+#kaltura-divClipProps #divSize{
+    margin: 40px 0px 0px 0px;
+    width: 350px;
+}
+
+#kaltura-divClipProps #divButtons {
+    height: 100px;
+    margin-top: 13px;
+    width: 760px;
+    text-align: center;
+}
+
+#kaltura-preview-close {
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+/** CSS definitions not used by Kaltura - consider removing
+a.current {
+    color: red;
+    font-weight: bold;
+}
 a.arrow_left,
 a.arrow_right {
     display:block;
@@ -259,130 +308,4 @@ a.arrow_right {
 a.arrow_left {
     background:url('<?php echo $CFG->wwwroot.'/blocks/kaltura/'; ?>images/left_arrow.gif');
 }
-
-#klibrary_items {
-}
-
-.kobj {
-    width: 150px;
-    padding:10px;
-    border: 1px solid #666666;
-    margin: 5px;
-    float: left;
-    height:150px;
-}
-
-div.kobj.active {
-    background-color:#cccccc;
-}
-
-.kobj div span {
-    display:block;
-}
-
-div.clear-block {
-    clear:both;
-}
-
-.kaltura_hand {
-    cursor:pointer;
-}
-
-.kaltura_link {
-    text-decoration:underline
-}
-
-#profile-wall-postphoto-btn, #profile-wall-postvideo-btn,
-#course-wall-postvideo-btn,
-#course-wall-postphoto-btn {
-    display:none;
-}
-
-#static_library_player_div {
-    height: 364px;
-    width: 410px;
-    overflow: hidden;
-}
-
-.media_type_video {
-    background-color: red;
-    color: white;
-}
-
-.media_type_image {
-    background-color: blue;
-    color: white;
-}
-
-.media_type_mix {
-    background-color: black;
-    color: white;
-}
-
-.media_type_audio {
-    background-color: yellow;
-    color: black;
-}
-
-a.current {
-    color: red;
-    font-weight: bold;
-}
-
-.poweredByKaltura {
-    display: none;
-}
-
-.collapsed_pptdoc {
-    cursor: pointer;
-    padding-bottom: 25px;
-    display: block;
-    background:url('<?php echo $CFG->wwwroot.'/blocks/kaltura/'; ?>images/collapsed_section.gif') no-repeat right top;
-}
-
-.collapsed_pptdoc.opened {
-    background:url('<?php echo $CFG->wwwroot.'/blocks/kaltura/'; ?>images/expanded_section.gif') no-repeat right top;
-}
-
-#mediaStatus_label.fix_mediaStatus_label_ie {
-    margin:expression('0px');
-}
-
-#kaltura .selectedMedia #mediaInfo .content.fix_content_ie {
-    clear: both;
-    height: 191px;
-    padding: 0px;
-    padding-bottom:expression('15px');
-}
-
-#divUserSlected {
-    margin-left: 416px;
-    margin-top: -350px;
-}
-
-#divDesign {
-    width: 350px;
-    margin-top: 40px;
-}
-
-#divDim {
-    margin: 40px 0px 0px 0px;
-    width: 350px;
-}
-
-#divSize{
-    margin: 40px 0px 0px 0px;
-    width: 350px;
-}
-
-#divButtons {
-    height: 100px;
-    margin-top: 13px;
-    width: 760px;
-    text-align: center;
-}
-
-#kpreview-close {
-    text-align: center;
-    padding-bottom: 20px;
-}
+*/

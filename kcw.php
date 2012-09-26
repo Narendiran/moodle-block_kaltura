@@ -20,6 +20,7 @@ print_header('Kaltura Uploader', '', '', '', $meta);
 $uploadtype     = optional_param('upload_type', 'video', PARAM_TEXT);
 $mod            = optional_param('mod', 'video_resource', PARAM_TEXT);
 $id             = optional_param('id', '', PARAM_INT);
+$courseid       = optional_param('courseid', 0, PARAM_INT);
 
 if (!empty($id)) {
 
@@ -40,7 +41,7 @@ if (!empty($id)) {
 
 $type = (0 == strcmp($uploadtype, 'video') ) ? KalturaEntryType::MEDIA_CLIP : KalturaEntryType::MIX;
 
-echo get_cw_wizard('divKalturaCw', 782, 449, $type);
+echo get_cw_wizard('divKalturaCw', 782, 449, $type, $courseid);
 
 if (0 == strcmp($mod, 'video_resource')) {
 

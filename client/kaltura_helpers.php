@@ -39,7 +39,7 @@ class KalturaHelpers {
         $adminSecret = $kPartner -> adminSecret;
     }
 
-    function getContributionWizardFlashVars($ks, $type = '', $kshowId = -2, $partner_data = '',  $comment = false, $delegate = '') {
+    function getContributionWizardFlashVars($ks, $type = '', $kshowId = -2, $partner_data = '',  $comment = false, $delegate = '', $course = 0) {
 
         $sessionUserId = '';
         $sessionUser = KalturaHelpers::getSessionUser();
@@ -50,10 +50,10 @@ class KalturaHelpers {
         $flashVars['userId'] = $sessionUser->userId;
         $flashVars['sessionId'] = $ks;
 
-	// Updated by MMU 2012-09-25
-	$flashVars['enforceTags'] = KalturaHelpers::getCourseTags();
-	$flashVars['disableCategories'] = True;
-	$flashVars['enforceCategory'] = MMU_DEFAULT_CATEGORY;
+        // Updated by MMU 2012-09-25
+        $flashVars['enforceTags'] = KalturaHelpers::getCourseTags($course);
+        $flashVars['disableCategories'] = True;
+        $flashVars['enforceCategory'] = MMU_DEFAULT_CATEGORY;
 
 
         if ($sessionUserId == KalturaSettings_ANONYMOUS_USER_ID) {
@@ -325,12 +325,16 @@ class KalturaHelpers {
 
 
 	// New function added by MMU 2012-09-25
-	function getCourseTags() {
+	function getCourseTags($course) {
 		global $COURSE;
 
 		$kalturaCourseTags = "";
 
-		if ($COURSE->id) {
+        if($courserec = get_record('course', 'id', $course)) {
+            $kalturaCourseTags = $courserec->shortname;
+            $kalturaCourseTags .= ",";
+            $kalturaCourseTags .= $courserec->fullname;
+        }elseif ($COURSE->id) {
 			$kalturaCourseTags = $COURSE->shortname;
 			$kalturaCourseTags .= ",";
 			$kalturaCourseTags .= $COURSE->fullname;

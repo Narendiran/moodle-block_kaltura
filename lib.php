@@ -55,6 +55,7 @@ class kaltura_entry {
   public $size = KalturaPlayerSize::LARGE;
   public $custom_width = 0;
   public $design = 'light';
+  public $courseid = '';
   public $title = '';
   public $context = '';
   public $entry_type = KalturaEntryType::MEDIA_CLIP;
@@ -65,11 +66,11 @@ function kaltura_get_types() {//this prevent from the blocks/kaltua itself to ap
   return array();
 }
 
-function get_cw_wizard($div, $width, $height, $type) {
+function get_cw_wizard($div, $width, $height, $type, $course) {
 
   $client       = KalturaHelpers::getKalturaClient();
   $swfUrl       = KalturaHelpers::getContributionWizardUrl($type);
-  $flashVars    = KalturaHelpers::getContributionWizardFlashVars($client->getKS(), $type); // Returns an array of parameters to pass
+  $flashVars    = KalturaHelpers::getContributionWizardFlashVars($client->getKS(), $type, '', '', '', '', $course); // Returns an array of parameters to pass
   $flashVarsStr = KalturaHelpers::flashVarsToString($flashVars);
 
   $flash_embed = '

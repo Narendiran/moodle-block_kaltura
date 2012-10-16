@@ -260,7 +260,7 @@ div.kaltura-obj.active {
 
 #kaltura-divClipProps #divUserSlected {
     margin-left: 416px;
-    margin-top: -350px;
+    margin-top: -320px;
 }
 
 #kaltura-divClipProps #divDesign {

@@ -52,7 +52,7 @@ class KalturaHelpers {
 
         // Updated by MMU 2012-09-25
         $flashVars['enforceTags'] = KalturaHelpers::getCourseTags($course);
-        $flashVars['disableCategories'] = True;
+        $flashVars['disableCategories'] = False;
         $flashVars['enforceCategory'] = MMU_DEFAULT_CATEGORY;
 
 

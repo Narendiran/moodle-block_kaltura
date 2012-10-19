@@ -41,7 +41,7 @@ if (!empty($id)) {
 
 $type = (0 == strcmp($uploadtype, 'video') ) ? KalturaEntryType::MEDIA_CLIP : KalturaEntryType::MIX;
 
-echo get_cw_wizard('divKalturaCw', 782, 449, $type, $courseid);
+echo get_cw_wizard('divKalturaCw', 782, 449, $type, $courseid, $mod);
 
 if (0 == strcmp($mod, 'video_resource')) {
 

@@ -66,11 +66,11 @@ function kaltura_get_types() {//this prevent from the blocks/kaltua itself to ap
   return array();
 }
 
-function get_cw_wizard($div, $width, $height, $type, $course) {
+function get_cw_wizard($div, $width, $height, $type, $course, $mod) {
 
   $client       = KalturaHelpers::getKalturaClient();
   $swfUrl       = KalturaHelpers::getContributionWizardUrl($type);
-  $flashVars    = KalturaHelpers::getContributionWizardFlashVars($client->getKS(), $type, '', '', '', '', $course); // Returns an array of parameters to pass
+  $flashVars    = KalturaHelpers::getContributionWizardFlashVars($client->getKS(), $type, '', '', '', '', $course, $mod); // Returns an array of parameters to pass
   $flashVarsStr = KalturaHelpers::flashVarsToString($flashVars);
 
   $flash_embed = '

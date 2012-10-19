@@ -39,7 +39,7 @@ class KalturaHelpers {
         $adminSecret = $kPartner -> adminSecret;
     }
 
-    function getContributionWizardFlashVars($ks, $type = '', $kshowId = -2, $partner_data = '',  $comment = false, $delegate = '', $course = 0) {
+    function getContributionWizardFlashVars($ks, $type = '', $kshowId = -2, $partner_data = '',  $comment = false, $delegate = '', $course = 0, $mod) {
 
         $sessionUserId = '';
         $sessionUser = KalturaHelpers::getSessionUser();
@@ -51,7 +51,7 @@ class KalturaHelpers {
         $flashVars['sessionId'] = $ks;
 
         // Updated by MMU 2012-09-25
-        $flashVars['enforceTags'] = KalturaHelpers::getCourseTags($course);
+        $flashVars['enforceTags'] = KalturaHelpers::getCourseTags($course).', '.$mod;
         $flashVars['disableCategories'] = False;
         $flashVars['enforceCategory'] = MMU_DEFAULT_CATEGORY;
 

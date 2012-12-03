@@ -435,7 +435,7 @@ function embed_kaltura($entryId, $width, $height, $type, $design, $show_links = 
     $custom_style = '';
     $links = '<a href=" http://corp.kaltura.com/solutions/education">education video</a><a href="http://corp.kaltura.com/userzone/tutorials">video tutorials</a><a href="http://corp.kaltura.com/technology/video_player">flv player</a>';
 
-    $html = '<div id="'. $div_id .'" class="kaltura_wrapper" style="'. $align . $custom_style .'"'
+    /*$html = '<div id="'. $div_id .'" class="kaltura_wrapper" style="'. $align . $custom_style .'"'
             .'>'. $links .'</div>'. $kaltura_poweredby;
     $html .= '<script type="text/javascript">
                   // This block of code is responsible for changing the id of the "page" and "content"
@@ -469,7 +469,20 @@ function embed_kaltura($entryId, $width, $height, $type, $design, $show_links = 
                       kaltura_swf.write("'. $div_id .'");
                   } else {
                       document.getElementById("'. $div_id .'").innerHTML = "Flash player version 9 and above is required. <a href=\'http://get.adobe.com/flashplayer/\'>Upgrade your flash version</a>";
-                  }</script>';
+                  }</script>'; */
+
+    // New code added by m.stubbs@mmu.ac.uk | 2012-11-23T20:04
+    $html .= '<object id="kaltura_player_'.$entryId.'" width="'.$width.'" height="'.$height.'" name="kaltura_player_'.$entryId.'" type="application/x-shockwave-flash" allowfullscreen="true" allownetworking="all" allowscriptaccess="always" xmlns:dc="http://purl.org/dc/terms/" xmlns:media="http://search.yahoo.com/searchmonkey/media/" rel="media:video" resource="'.KalturaHelpers::getSwfUrlForWidget($partnerId).'/uiconf_id/'.$playerId.'/entry_id/'.$entryId.'" data="'.KalturaHelpers::getSwfUrlForWidget($partnerId).'/uiconf_id/'.$playerId.'/entry_id/'.$entryId.'">';
+
+    $html .= '<param name="allowFullScreen" value="true" />
+        <param name="allowNetworking" value="all" />
+        <param name="allowScriptAccess" value="always" />
+        <param name="bgcolor" value="#000000" />
+        <param name="wmode" value="transparent" />
+        <param name="flashVars" value="'.$flashVarsStr.'" />
+        <param name="movie" value="'.KalturaHelpers::getSwfUrlForWidget($partnerId).'/uiconf_id/'.$playerId.'/entry_id/'.$entryId.'" />
+    </object>';
+
 
     return $html;
 }

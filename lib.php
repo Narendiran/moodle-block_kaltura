@@ -31,7 +31,7 @@ define('KALTURA_PLAYER_PLAYERVIDEOPRESENTATION',        4860481);
 define('KALTURA_CACHE_REFRESH', 12); // Minutes before the Kaltura cache refreshes
 
 // MMU addition 2012-09-25
-define('MMU_DEFAULT_CATEGORY','MediaSpace4>Private');
+define('MMU_DEFAULT_CATEGORY','MediaSpace>Private');
 
 require_once('client/kaltura_settings.php');
 require_once('client/KalturaClientBase.php');
